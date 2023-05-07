@@ -21,7 +21,7 @@ class WrenCompilerInit {
 		return;
 		#end
 
-		ReflectCompiler.AddCompiler(new WrenCompiler(), {
+		ReflectCompiler.AddCompiler(WrenCompiler.instance, {
 			fileOutputExtension: ".wren",
 			outputDirDefineName: "wren-output",
 			fileOutputType: FilePerClass,
