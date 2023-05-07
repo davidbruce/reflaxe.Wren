@@ -36,16 +36,22 @@ inline function compile(classType: ClassType, varFields: ClassFieldVars, funcFie
     var funcString = funcFields.map(ff -> {
         final field = ff.field;
 		final data = ff.data;
-		final funcHeader = (ff.isStatic ? "static " : "") + field.getNameOrNative() + "(" + data.args.map(a -> a.name).join(", ") + ") {\n";
-		final funcContent = data.expr != null ? compiler.compileClassFuncExpr(data.expr) : "";
+		final funcSig = '${field.getNameOrNative()}(${data.args.map(a -> a.name).join(", ")})';
+        final staticModifier = (ff.isStatic)
+            ? "static "
+            : "";
+		final funcContent = (data.expr != null)
+            ? compiler.compileClassFuncExpr(data.expr)
+            : "";
+
         if (field.name == 'new') {
             trace(data.expr);
         }
 
-		return (funcHeader + funcContent.tab()) + "\n}\n";
+		return '$staticModifier$funcSig {\n${funcContent.tab()}\n}';
         // trace(f.field.name);
     }).join("\n");
-    return 'class $decl {\n$varString\n$funcString \n}';
+    return 'class $decl {\n${varString.tab()}\n\n${funcString.tab()}\n}';
 }
 
 #end
