@@ -24,13 +24,19 @@ inline function compile(expr: TypedExpr): String {
         case TParenthesis(e): '($compiler.compiledExpression(e))';
         case TObjectDecl(fields): "TODO objectdecl";
         case TArrayDecl(el): '[${el.map(e -> compiler.compileExpression(e)).join(", "))}]';
-        case TCall(e, el): '$compiler.compileExpression(e)(${el.map(e -> compiler.compileExpression(e)).join(",")})';
+        case TCall(e, el): '${compiler.compileExpression(e)}(${el.map(e -> compiler.compileExpression(e)).join(",")})';
         case TNew(classTypeRef, _, el): '${classTypeRef.get().getNameOrNative()}.new(${el.map(e -> compiler.compileExpression(e)).join(", "))})';
         case TUnop(op, isPostfix, e):
             isPostfix ? (compiler.compileExpression(e) + OperatorHelper.unopToString(op))
                       : (OperatorHelper.unopToString(op) + compiler.compileExpression(e));
         case TFunction(tfunc): "TODO tfunction";
-        case TVar(tvar, expr): "TODO tvar";
+        case TVar(tvar, expr): {
+            var result = "var " + tvar.getNameOrNative();
+            if(expr != null) {
+                result += " = " + compiler.compileExpression(expr);
+            }
+            return result;
+        };
         case TBlock(el): "TODO tblock";
         case TFor(tvar, iterExpr, blockExpr): "TODO TFor";
         case TIf(econd, ifExpr, elseExpr): "TODO TIf";
@@ -63,8 +69,13 @@ function constantToWren(constant: TConstant): String
 
 
 function fieldAccessToWren(e: TypedExpr, fa: FieldAccess): String {
+    final expr = compiler.compileExpression(e);
+    var isPrivate = false;
     final nameMeta: NameAndMeta = switch(fa) {
-        case FInstance(_, _, classFieldRef): classFieldRef.get();
+        case FInstance(_, _, classFieldRef): {
+            isPrivate = !classFieldRef.get().isPublic;
+            classFieldRef.get();
+        }
         case FStatic(_, classFieldRef): classFieldRef.get();
         case FAnon(classFieldRef): classFieldRef.get();
         case FClosure(_, classFieldRef): classFieldRef.get();
@@ -72,7 +83,13 @@ function fieldAccessToWren(e: TypedExpr, fa: FieldAccess): String {
         case FDynamic(s): { name: s, meta: null };
 	}
 
-    return '_${nameMeta.name}';
+    // trace(e);
+    // trace(fa);
+    // trace(nameMeta.name);
+    if (isPrivate) {
+        return '_${nameMeta.name}';
+    }
+    return '$expr.${nameMeta.name}';
 }
 
 

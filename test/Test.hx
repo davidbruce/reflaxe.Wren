@@ -1,11 +1,16 @@
 package;
 
 class Test {
-    final testField = 123;
+    final finalTestField = 123;
+    public var varTestField = 987;
+    public static var staticVarTestField = 5;
+
+    public function new() {}
 	public static function main() {
 		// trace("Hello world.");
+		var x = new Test();
 
-		var strLen = "string object".length;
+		// var strLen = "string object".length;
 		// trace(strLen);
 
 		// untyped __testscript__("{} *** {}", 2 + 2, "Hello");
